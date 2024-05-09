@@ -1,9 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+title: "[FEATURE] Example Feature Title"
+labels: enhancement
+assignees: Cicker21
 
 ---
 

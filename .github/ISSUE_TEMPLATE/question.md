@@ -1,9 +1,9 @@
 ---
 name: Question
 about: Explain what's unclear
-title: ''
-labels: ''
-assignees: ''
+title: "[Question] How to [...]"
+labels: help wanted, question
+assignees: Cicker21
 
 ---
 
