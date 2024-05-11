@@ -172,7 +172,8 @@ namespace Sello
 
         private void refresh()
         {
-            dataGridView1.DataSource = returnW("");
+            if (autoup_cb.Checked) { dataGridView1.DataSource = returnW(textBox1.Text); }
+            
         }
         private void toast(object sender, DataGridViewCellEventArgs e)
         {
@@ -401,13 +402,13 @@ namespace Sello
                 {
                     try
                     {
-                        
+
                         string[] lines = File.ReadAllLines(mainfile);
                         List<string> linesL = lines.ToList();
 
                         string[] cifs = lines[1].Split(',');
 
-                        for (int i = 0;i < cifs.Length;i++)
+                        for (int i = 0; i < cifs.Length; i++)
                         {
                             if (cifs[i] == "true")
                             {
@@ -426,6 +427,9 @@ namespace Sello
                             linesL.RemoveAt(index);
 
                             File.WriteAllLines(mainfile, linesL);
+                            foreach(DataGridViewCell cell in dataGridView1.Rows[row].Cells) {
+                                cell.Value = "Fila Eliminada";
+                            }
                             refresh();
                         }
 
@@ -464,7 +468,7 @@ namespace Sello
 
         private void update(object sender, EventArgs e)
         {
-            refresh();
+            dataGridView1.DataSource = returnW(textBox1.Text);
         }
 
         private void edit(object sender, DataGridViewCellMouseEventArgs e)
@@ -522,8 +526,11 @@ namespace Sello
 
                                 lines[linepos] = formres_;
                                 File.WriteAllLines(mainfile, lines);
-
-                                //refresh(); //te manda a tomar por culo cuando estas editando
+                                foreach (DataGridViewCell cell in dataGridView1.Rows[e.RowIndex].Cells)
+                                {
+                                    cell.Value = formslice[cell.ColumnIndex];
+                                }
+                                refresh();
                             }
                         }
                         catch (Exception ex) { MessageBox.Show(ex.Message); }
