@@ -1,9 +1,6 @@
 ﻿using System.Data;
-using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
-using System.Windows.Forms;
-using System.Xml.Linq;
+using System.Drawing.Text;
+
 
 namespace Sello
 {
@@ -11,14 +8,20 @@ namespace Sello
     {
         private string seed;
         private System.Windows.Forms.Timer timer;
+        private PrivateFontCollection fontCollection;
+        public bool[] circulitos_c;
+
         public Main(string seed_)
         {
+            gf = Program.GetCustomFont(Properties.Resources.Circulitos, 12F, FontStyle.Regular);
+
             seed = seed_;
             InitializeComponent();
             dataGridView1.DataSource = returnW("");
             timer = new System.Windows.Forms.Timer();
-            timer.Interval = 500; // Intervalo de 1 segundo
+            timer.Interval = 500;
             timer.Tick += Timer_Tick;
+
         }
 
         private DataTable table = new DataTable();
@@ -57,7 +60,6 @@ namespace Sello
             }
         }
 
-        //public string contraseña;
         private DataTable returnW(string diff)
         {
             table = new DataTable(); //reinicia la tabla
@@ -90,13 +92,7 @@ namespace Sello
                                         table.Columns.Add(s);
 
                                     }
-                                    //for (int j = 0; j < data.Length; j++)
-                                    //{
-                                    //    string s = data[j];
-                                    //    mainRow[maincols[j]] = s;
-                                    //}
 
-                                    //table.Rows.Add(mainRow);
                                     break;
                                 case 1:
 
@@ -155,7 +151,7 @@ namespace Sello
                         }
                         else
                         {
-                            MessageBox.Show("Error: " + excpt.Message);
+                            MessageBox.Show("Error 164: " + excpt.Message);
                         }
                     }
                 }
@@ -165,27 +161,53 @@ namespace Sello
                 MessageBox.Show("Error al leer el archivo: " + e.Message);
             }
 
-
             return table;
-
         }
 
         private void refresh()
         {
             if (autoup_cb.Checked) { dataGridView1.DataSource = returnW(textBox1.Text); }
-            
+
         }
+        private Font gf;
+
+        private void circulitos(int index, bool update)
+        {
+            if (update)
+            {
+                circulitos_c[index] = !circulitos_c[index];
+            }
+            try
+            {
+                string[] data = File.ReadAllLines("settings.cfg");
+                data[1] = "hiddenCols:" + string.Join(",", circulitos_c);
+                File.WriteAllLines("settings.cfg", data);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("error 188:" + ex.Message);
+            }
+        }
+
         private void toast(object sender, DataGridViewCellEventArgs e)
         {
             try
             {
-                string s = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
-                Clipboard.SetDataObject(s);
-                new ToolTip().Show("Copiado al portapapeles!", this, Cursor.Position.X - this.Location.X, Cursor.Position.Y - this.Location.Y, 1000);
+                if (e.RowIndex < 0)
+                {
+                    circulitos(e.ColumnIndex, true);
+                    dataGridView1.Invalidate();
+                }
+                else
+                {
+                    string s = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+                    Clipboard.SetDataObject(s);
+                    new ToolTip().Show("Copiado al portapapeles!", this, Cursor.Position.X - this.Location.X, Cursor.Position.Y - this.Location.Y, 1000);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error" + ex);
+                MessageBox.Show("Error toast " + ex);
             }
         }
 
@@ -214,9 +236,9 @@ namespace Sello
                     }
 
                 }
-                catch (Exception e)
+                catch (Exception exx)
                 {
-                    MessageBox.Show(e.Message);
+                    MessageBox.Show("error 241:" + exx.Message);
                     return 0;
                 }
                 return x;
@@ -270,7 +292,7 @@ namespace Sello
                 }
                 else { MessageBox.Show("No existe el archivo " + mainfile); }
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { MessageBox.Show("error 300: " + ex.Message); }
             refresh();
         }
         private string CrearFormulario(string[] input, string[] cols, int date)
@@ -392,7 +414,7 @@ namespace Sello
                 for (int i = 0; i < dataGridView1.Rows[row].Cells.Count; i++)
                 {
                     // Acceder al valor de la celda y almacenarlo en el arreglo
-                    cellValues[i] = dataGridView1.Rows[row].Cells[i].Value?.ToString();
+                    cellValues[i] = dataGridView1.Rows[row].Cells[i].Value.ToString();
                 }
                 string dialogMess = string.Join(" ", "¿Quieres borrar:", string.Join(", ", cellValues), "?");
 
@@ -427,14 +449,12 @@ namespace Sello
                             linesL.RemoveAt(index);
 
                             File.WriteAllLines(mainfile, linesL);
-                            foreach(DataGridViewCell cell in dataGridView1.Rows[row].Cells) {
+                            foreach (DataGridViewCell cell in dataGridView1.Rows[row].Cells)
+                            {
                                 cell.Value = "Fila Eliminada";
                             }
                             refresh();
                         }
-
-
-
 
                     }
                     catch (Exception ex)
@@ -533,7 +553,7 @@ namespace Sello
                                 refresh();
                             }
                         }
-                        catch (Exception ex) { MessageBox.Show(ex.Message); }
+                        catch (Exception ex) { MessageBox.Show("error 600:" + ex.Message); }
 
                     }
                 }
@@ -571,6 +591,99 @@ namespace Sello
                         form.ShowDialog();
                     }
                 }
+            }
+        }
+
+        private string[] global_settings = { "autoupdate:false", "hiddenCols:false" };
+        private void Main_Load(object sender, EventArgs e)
+        {
+            circulitos_c = new bool[dataGridView1.ColumnCount];
+            try
+            {
+                if (File.Exists("settings.cfg"))
+                {
+                    global_settings = File.ReadAllLines("settings.cfg");
+                    if (global_settings[0].Split(':')[1].ToLower() == "true")
+                    {
+                        autoup_cb.Checked = true;
+                    }
+                    string[] pre = global_settings[1].Split(':')[1].Split(',');
+                    if (pre.Length == dataGridView1.ColumnCount)
+                    {
+                        bool[] newcircs = new bool[pre.Length];
+                        for (int i = 0; i < pre.Length; i++)
+                        {
+                            if (pre[i].ToLower() == "true")
+                            {
+                                newcircs[i] = true;
+                            }
+                            else
+                            {
+                                newcircs[i] = false;
+                            }
+                        }
+                        circulitos_c = newcircs;
+                        circulitos(0, false);
+                    }
+                }
+                else
+                {
+                    File.WriteAllLines("settings.cfg", global_settings);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error 663:" + ex.Message);
+            }
+        }
+        private void changeSettings(string name, string value)
+        {
+            try
+            {
+                string[] data = File.ReadAllLines("settings.cfg");
+                for (int i = 0; i < data.Length; i++)
+                {
+
+                    string[] dataspl = data[i].Split(":");
+                    if (dataspl[0] == name)
+                    {
+                        data[i] = dataspl[0] + ":" + value;
+                        File.WriteAllLines("settings.cfg", data);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error 690:" + ex.Message);
+            }
+
+        }
+        private void autoup_cb_CheckedChanged(object sender, EventArgs e)
+        {
+            changeSettings("autoupdate", autoup_cb.Checked.ToString());
+        }
+
+        private void dataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex >= 0 && e.RowIndex >= 0 && circulitos_c[e.ColumnIndex])
+                {
+                    StringFormat sf = new StringFormat();
+                    sf.Alignment = StringAlignment.Center; // Alineación horizontal
+                    sf.LineAlignment = StringAlignment.Center;
+                    sf.FormatFlags = StringFormatFlags.NoWrap;
+
+                    e.Handled = true;
+                    e.PaintBackground(e.CellBounds, true);
+                    e.Graphics.DrawString(e.FormattedValue.ToString(), gf, Brushes.Black, e.CellBounds, sf);
+                    e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
+                }
+            }
+            catch (Exception ez)
+            {
+                MessageBox.Show("array:" + string.Join(",", circulitos_c) + "\nindex: " + e.RowIndex + "\narrayL: " + circulitos_c.Length + "\ndatagrid: " + dataGridView1.ColumnCount + "\n\n" + ez.Message);
             }
         }
     }

@@ -12,7 +12,7 @@ namespace Sello
 
         }
 
-        public async void validar(object sender, EventArgs e)
+        public void validar(object sender, EventArgs e)
         {
 
             Main a = new Main(textBox1.Text);
@@ -58,7 +58,6 @@ namespace Sello
 
         private void button1_Click(object sender, EventArgs e)
         {
-            using (FileStream fs = File.Create(mainfile)) ;
             Main a = new Main(textBox1.Text);
             this.Hide();
             a.ShowDialog();
