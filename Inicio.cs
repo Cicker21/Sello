@@ -1,6 +1,8 @@
 
 namespace Sello
 {
+    using Newtonsoft.Json.Linq;
+    using System;
 
     public partial class Inicio : Form
     {
@@ -11,7 +13,60 @@ namespace Sello
             InitializeComponent();
 
         }
+        private async Task lastVersion()
+        {
+            string output = null;
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "C# App");
 
+                string url = $"https://api.github.com/repos/Cicker21/Sello/releases/latest";
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                JObject release = JObject.Parse(responseBody);
+                string tagName = release["tag_name"].ToString();
+                output = tagName;
+            }
+            if (compV(output, this.Text))
+            {
+
+                label2.Text = "Hay una nueva versión disponible, " + output;
+            }
+            else
+            {
+                label2.Text = "Tienes la version mas reciente, " + output;
+            }
+        }
+        private bool compV(string git, string local)
+        {
+            git = git.Split(git.Split('.')[0])[1].Substring(1);
+            local = local.Split(local.Split('.')[0])[1].Substring(1);
+
+            //MessageBox.Show(git + " " + local);
+            int[] gitV = Array.ConvertAll(git.Split('.'), int.Parse);
+            int[] localV = Array.ConvertAll(local.Split('.'), int.Parse);
+
+            string log = "";
+            // Comparar las versiones
+            for (int i = 1; i < gitV.Length; i++)
+            {
+                if (gitV[i] > localV[i])
+                {
+                    //MessageBox.Show(gitV[i] + ">" + local[i] + "\n");
+                    return true; //hay update
+                }
+                else if (gitV[i] < localV[i])
+                {
+                    //MessageBox.Show(gitV[i] + "<" + local[i] + "\n");
+                    return false; //no hay update
+
+                }
+
+            }
+            return false; //no hay update, son iguales
+        }
         public void validar(object sender, EventArgs e)
         {
 
@@ -64,8 +119,10 @@ namespace Sello
             this.Close();
         }
 
-        private void Inicio_Load(object sender, EventArgs e)
+        private async void Inicio_Load(object sender, EventArgs e)
         {
+            await lastVersion();
+
             if (!File.Exists(mainfile))
             {
 
@@ -117,5 +174,11 @@ namespace Sello
                 }
             }
         }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+            tabla.Visible = false;
+        }
+
     }
 }

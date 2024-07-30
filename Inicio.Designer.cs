@@ -34,6 +34,10 @@
             label1 = new Label();
             checkBox1 = new CheckBox();
             button2 = new Button();
+            label2 = new Label();
+            label3 = new Label();
+            tabla = new TableLayoutPanel();
+            tabla.SuspendLayout();
             SuspendLayout();
             // 
             // button1
@@ -69,10 +73,30 @@
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
+            // label2
+            // 
+            resources.ApplyResources(label2, "label2");
+            label2.Name = "label2";
+            // 
+            // label3
+            // 
+            resources.ApplyResources(label3, "label3");
+            label3.Name = "label3";
+            label3.Click += label3_Click;
+            // 
+            // tabla
+            // 
+            tabla.BackColor = Color.CornflowerBlue;
+            resources.ApplyResources(tabla, "tabla");
+            tabla.Controls.Add(label3, 1, 0);
+            tabla.Controls.Add(label2, 0, 0);
+            tabla.Name = "tabla";
+            // 
             // Inicio
             // 
             AutoScaleMode = AutoScaleMode.None;
             resources.ApplyResources(this, "$this");
+            Controls.Add(tabla);
             Controls.Add(button2);
             Controls.Add(checkBox1);
             Controls.Add(label1);
@@ -83,6 +107,8 @@
             Name = "Inicio";
             SizeGripStyle = SizeGripStyle.Hide;
             Load += Inicio_Load;
+            tabla.ResumeLayout(false);
+            tabla.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -94,5 +120,8 @@
         private Label label1;
         private CheckBox checkBox1;
         private Button button2;
+        private Label label2;
+        private Label label3;
+        private TableLayoutPanel tabla;
     }
 }

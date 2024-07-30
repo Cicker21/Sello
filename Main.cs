@@ -35,29 +35,6 @@ namespace Sello
 
             // Ejecuta la función una vez que el temporizador ha terminado
             dataGridView1.DataSource = returnW(textBox1.Text);
-            for (int i = 0; i < dataGridView1.RowCount; i++)
-            {
-                if (textBox1.Text.Length > 0)
-                {
-
-                    for (int l = 0; l < 3; l++)
-                    {
-                        string s = dataGridView1.Rows[i].Cells[l].Value.ToString();
-                        if (s.Contains(textBox1.Text) == true && textBox1.Text.Length > 0)
-                        {
-                            dataGridView1.Rows[i].Cells[l].Style.BackColor = Color.Red;
-                            dataGridView1.Rows[i].Cells[l].Style.ForeColor = Color.White;
-                        }
-                        else
-                        {
-                            dataGridView1.Rows[i].Cells[l].Style.BackColor = Color.White;
-                            dataGridView1.Rows[i].Cells[l].Style.ForeColor = Color.Black;
-                        }
-                    }
-
-                }
-
-            }
         }
 
         private DataTable returnW(string diff)
@@ -565,8 +542,9 @@ namespace Sello
             Estructura formEst = new Estructura(seed);
             this.Hide();
             formEst.ShowDialog();
-            this.Show();
-            refresh();
+            Main repl = new Main(seed);
+            repl.ShowDialog();
+            this.Close();
         }
 
         private void drive(object sender, MouseEventArgs e)
@@ -668,23 +646,85 @@ namespace Sello
         {
             try
             {
-                if (e.ColumnIndex >= 0 && e.RowIndex >= 0 && circulitos_c[e.ColumnIndex])
+                if (e.ColumnIndex >= 0 && e.RowIndex >= 0)
                 {
-                    StringFormat sf = new StringFormat();
-                    sf.Alignment = StringAlignment.Center; // Alineación horizontal
-                    sf.LineAlignment = StringAlignment.Center;
-                    sf.FormatFlags = StringFormatFlags.NoWrap;
-
+                    Brush color = Brushes.Black;
                     e.Handled = true;
                     e.PaintBackground(e.CellBounds, true);
-                    e.Graphics.DrawString(e.FormattedValue.ToString(), gf, Brushes.Black, e.CellBounds, sf);
+                    if (textBox1.Text.Length > 0)
+                    {
+                        string s = e.Value.ToString();
+                        if (s.Contains(textBox1.Text) == true && textBox1.Text.Length > 0)
+                        {
+                            color = Brushes.White;
+                            using (SolidBrush brush = new SolidBrush(Color.Red))
+                            {
+                                e.Graphics.FillRectangle(brush, e.CellBounds);
+                            }
+                        }
+                    }
+
+                    if (circulitos_c[e.ColumnIndex])
+                    {
+                        StringFormat sf = new StringFormat();
+                        sf.Alignment = StringAlignment.Center; // Alineación horizontal
+                        sf.LineAlignment = StringAlignment.Center;
+                        sf.FormatFlags = StringFormatFlags.NoWrap;
+                        e.Graphics.DrawString(e.FormattedValue.ToString(), gf, color, e.CellBounds, sf);
+                    }
+                    else
+                    {
+                        StringFormat sf = new StringFormat();
+                        sf.LineAlignment = StringAlignment.Center;
+                        sf.FormatFlags = StringFormatFlags.NoWrap;
+                        e.Graphics.DrawString(e.FormattedValue.ToString(), new Font("Arial", 10F), color, e.CellBounds, sf);
+                    }
                     e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
                 }
+
             }
             catch (Exception ez)
             {
                 MessageBox.Show("array:" + string.Join(",", circulitos_c) + "\nindex: " + e.RowIndex + "\narrayL: " + circulitos_c.Length + "\ndatagrid: " + dataGridView1.ColumnCount + "\n\n" + ez.Message);
             }
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            Form form = new Form();
+            form.Text = "Lista de consejos";
+            form.ClientSize = new Size(300, 300); // Tamaño fijo del formulario
+            form.FormBorderStyle = FormBorderStyle.FixedDialog; // Borde fijo para no permitir redimensionar
+            form.StartPosition = FormStartPosition.CenterScreen;
+
+            // Crear un FlowLayoutPanel
+            FlowLayoutPanel flowLayoutPanel = new FlowLayoutPanel();
+            flowLayoutPanel.Dock = DockStyle.Fill; // Rellenar el formulario
+            flowLayoutPanel.AutoScroll = true; // Permitir el desplazamiento si es necesario
+            flowLayoutPanel.FlowDirection = FlowDirection.TopDown; // Disponer los controles en columna vertical
+            flowLayoutPanel.WrapContents = false; // No permitir el ajuste de contenido
+
+            // Configurar el tamaño de la fuente y la separación entre elementos
+            Font itemFont = new Font("Arial", 12); // Tamaño de fuente más grande
+            int itemHeight = 15; // Altura de los elementos (espaciado)
+            string[] Lista = { "Doble Click[izdo] en las celdas\npara copiar su contenido al portapapeles", "Doble Click[dcho] en las celdas\npara editar una fila", "Doble Click[izdo] en las cabeceras de columna\npara ocultar sus datos", "Click[izdo] en la cabecera\npara ordenar la columna", "Click[izdo] en el botón flechas azules\npara actualizar la tabla", "El botón [Modificar]\nsirve para cambiar el orden de las columnas, su nombre y tipo de valores.", "Al [Modificar] la tabla\npara aplicar los ajustes se te pedira que crees una preview [Crear Tabla].\n\nY si la tabla se muestra como esperabas, pulsa posteriormente [Confirmar]" };
+            // Crear y agregar los controles Label al FlowLayoutPanel
+            for (int i = 1; i < Lista.Length; i++)
+            {
+                Label label = new Label();
+                label.Text = $"• " + Lista[i];
+                label.Font = itemFont;
+                label.AutoSize = true; // Ajustar automáticamente el tamaño del Label
+                label.Margin = new Padding(0, itemHeight, 0, 0); // Margen para separación
+
+                flowLayoutPanel.Controls.Add(label);
+            }
+
+            // Agregar el FlowLayoutPanel al formulario
+            form.Controls.Add(flowLayoutPanel);
+
+            // Mostrar el formulario
+            form.ShowDialog();
         }
     }
 }

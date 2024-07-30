@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
+            dataGridView1 = new DataGridView();
             textBox1 = new TextBox();
             label1 = new Label();
             button1 = new Button();
@@ -41,8 +42,8 @@
             button3 = new Button();
             autoup_cb = new CheckBox();
             button5 = new Button();
-            dataGridView1 = new DataGridView();
             tableLayoutPanel1 = new TableLayoutPanel();
+            button7 = new Button();
             flowLayoutPanel1 = new FlowLayoutPanel();
             flowLayoutPanel3 = new FlowLayoutPanel();
             flowLayoutPanel2 = new FlowLayoutPanel();
@@ -52,6 +53,24 @@
             flowLayoutPanel3.SuspendLayout();
             flowLayoutPanel2.SuspendLayout();
             SuspendLayout();
+            // 
+            // dataGridView1
+            // 
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.AllowUserToDeleteRows = false;
+            dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Location = new Point(12, 111);
+            dataGridView1.Name = "dataGridView1";
+            dataGridView1.ReadOnly = true;
+            dataGridView1.RowHeadersVisible = false;
+            dataGridView1.Size = new Size(721, 290);
+            dataGridView1.TabIndex = 9;
+            dataGridView1.VirtualMode = true;
+            dataGridView1.CellDoubleClick += toast;
+            dataGridView1.CellMouseDown += edit;
+            dataGridView1.CellPainting += dataGridView1_CellPainting;
             // 
             // textBox1
             // 
@@ -75,7 +94,7 @@
             // button1
             // 
             button1.BackColor = Color.FromArgb(128, 255, 128);
-            button1.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            button1.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             button1.Location = new Point(3, 18);
             button1.Name = "button1";
             button1.Size = new Size(85, 32);
@@ -87,7 +106,7 @@
             // button2
             // 
             button2.BackColor = Color.LightCoral;
-            button2.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            button2.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             button2.Location = new Point(3, 56);
             button2.Name = "button2";
             button2.Size = new Size(85, 34);
@@ -99,7 +118,7 @@
             // button6
             // 
             button6.BackColor = Color.NavajoWhite;
-            button6.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            button6.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             button6.Location = new Point(94, 56);
             button6.Name = "button6";
             button6.Size = new Size(141, 34);
@@ -113,7 +132,7 @@
             button4.BackColor = Color.LightSeaGreen;
             button4.BackgroundImage = Properties.Resources.Google_Drive_logo;
             button4.BackgroundImageLayout = ImageLayout.Zoom;
-            button4.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            button4.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             button4.Location = new Point(94, 18);
             button4.Name = "button4";
             button4.Size = new Size(141, 32);
@@ -153,7 +172,7 @@
             // button3
             // 
             button3.BackColor = Color.CornflowerBlue;
-            button3.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            button3.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
             button3.Location = new Point(241, 18);
             button3.Name = "button3";
             button3.Size = new Size(158, 32);
@@ -165,14 +184,13 @@
             // autoup_cb
             // 
             autoup_cb.AutoSize = true;
-            autoup_cb.Checked = true;
-            autoup_cb.CheckState = CheckState.Checked;
             autoup_cb.Location = new Point(45, 3);
             autoup_cb.Name = "autoup_cb";
-            autoup_cb.Size = new Size(175, 19);
+            autoup_cb.Size = new Size(89, 19);
             autoup_cb.TabIndex = 2;
-            autoup_cb.Text = "Actualizar automaticamente";
+            autoup_cb.Text = "Automático";
             autoup_cb.UseVisualStyleBackColor = true;
+            autoup_cb.CheckedChanged += autoup_cb_CheckedChanged;
             // 
             // button5
             // 
@@ -186,23 +204,6 @@
             button5.UseVisualStyleBackColor = false;
             button5.Click += update;
             // 
-            // dataGridView1
-            // 
-            dataGridView1.AllowUserToAddRows = false;
-            dataGridView1.AllowUserToDeleteRows = false;
-            dataGridView1.AllowUserToOrderColumns = true;
-            dataGridView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(12, 111);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.ReadOnly = true;
-            dataGridView1.RowHeadersVisible = false;
-            dataGridView1.RowTemplate.Height = 25;
-            dataGridView1.Size = new Size(721, 297);
-            dataGridView1.TabIndex = 0;
-            dataGridView1.CellDoubleClick += toast;
-            dataGridView1.CellMouseDown += edit;
-            // 
             // tableLayoutPanel1
             // 
             tableLayoutPanel1.ColumnCount = 4;
@@ -210,6 +211,7 @@
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel1.Controls.Add(button7, 3, 2);
             tableLayoutPanel1.Controls.Add(label1, 0, 0);
             tableLayoutPanel1.Controls.Add(button1, 0, 1);
             tableLayoutPanel1.Controls.Add(button2, 0, 2);
@@ -224,8 +226,20 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 29.3103447F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 70.68965F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 39F));
-            tableLayoutPanel1.Size = new Size(401, 93);
+            tableLayoutPanel1.Size = new Size(405, 93);
             tableLayoutPanel1.TabIndex = 1;
+            // 
+            // button7
+            // 
+            button7.BackColor = SystemColors.ScrollBar;
+            button7.Font = new Font("Microsoft Sans Serif", 9F, FontStyle.Bold);
+            button7.Location = new Point(241, 56);
+            button7.Name = "button7";
+            button7.Size = new Size(158, 34);
+            button7.TabIndex = 10;
+            button7.Text = "Ayuda";
+            button7.UseVisualStyleBackColor = false;
+            button7.Click += button7_Click;
             // 
             // flowLayoutPanel1
             // 
@@ -260,13 +274,14 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(745, 413);
+            Controls.Add(dataGridView1);
             Controls.Add(flowLayoutPanel1);
             Controls.Add(tableLayoutPanel1);
-            Controls.Add(dataGridView1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             MinimumSize = new Size(603, 276);
             Name = "Main";
             Text = "Sello";
+            Load += Main_Load;
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
@@ -291,10 +306,11 @@
         private Label label4;
         private CheckBox autoup_cb;
         private Button button5;
-        private DataGridView dataGridView1;
         private TableLayoutPanel tableLayoutPanel1;
         private FlowLayoutPanel flowLayoutPanel1;
         private FlowLayoutPanel flowLayoutPanel3;
         private FlowLayoutPanel flowLayoutPanel2;
+        private DataGridView dataGridView1;
+        private Button button7;
     }
 }
