@@ -24,7 +24,10 @@ namespace Sello
         private static readonly string[] Scopes = { "https://www.googleapis.com/auth/drive" };
         private static readonly string username = "cickasmurf@gmail.com";
         private static readonly string ApplicationName = "SelloDrive";
+        private static readonly string ClientId = null; //Change this (xxxgoogleusercontent.com)
         private static readonly string RedirectUri = "http://127.0.0.1:3301/authorize";
+        private static readonly string ClientSecret = null; //Change this (xxx-xxxxxxx)
+
         private string mainfile = @".\pawd.csv";
         private string mainfilename = "pawd";
         private string mainfileformat = ".csv";
