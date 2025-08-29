@@ -1,0 +1,228 @@
+﻿@page "/weather"
+@using System.IO
+@using System.Globalization
+@using CsvHelper
+@inject IJSRuntime JSRuntime
+@using Sello
+
+<h1>Configuración desde CSV</h1>
+
+<div class="mb-3">
+    <label class="form-label">Contraseña maestra:</label>
+    <input class="form-control" @bind="inputPassword" type="password" />
+    <button class="btn btn-success mt-2" @onclick="SetPassword">Establecer contraseña</button>
+    @if (!string.IsNullOrEmpty(password))
+    {
+        <span class="ms-2 text-success">Contraseña establecida</span>
+    }
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Ruta del archivo CSV:</label>
+    <input class="form-control" @bind="csvFilePath" />
+    <small class="form-text text-muted">Ejemplo: C:\\datos.csv o /storage/emulated/0/datos.csv</small>
+</div>
+
+<button class="btn btn-primary me-2" @onclick="LoadCsvData" disabled="@isLoading">
+    @if (isLoading)
+    {
+        <span class="spinner-border spinner-border-sm" role="status"></span>
+    }
+    Cargar CSV
+</button>
+
+<button class="btn btn-secondary" @onclick="ClearData">Limpiar</button>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">@errorMessage</div>
+}
+
+@if (tableData.Any())
+{
+    <div class="d-flex align-items-center mt-3">
+        <button class="btn btn-outline-secondary me-2" @onclick="ShowPreviousColumns" disabled="@(!CanShowPrevious)">
+            &lt;
+        </button>
+        <button class="btn btn-outline-secondary me-2" @onclick="ShowNextColumns" disabled="@(!CanShowNext)">
+            &gt;
+        </button>
+        <span>Columnas @((currentColumnIndex + 1)) y @(Math.Min(currentColumnIndex + 2, headers.Count)) de @headers.Count</span>
+    </div>
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-hover table-fixed" style="min-width:100vw;">
+            <thead class="table-dark">
+                <tr>
+                    @foreach (var header in VisibleHeaders)
+                    {
+                        <th style="width: 50vw; min-width: 50vw; max-width: 50vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@header</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in tableData)
+                {
+                    <tr>
+                        @foreach (var header in VisibleHeaders)
+                        {
+                            string value = row.ContainsKey(header) ? row[header] : "";
+                            <td style="width: 50vw; min-width: 50vw; max-width: 50vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                @value
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else if (!isLoading && !string.IsNullOrEmpty(csvFilePath))
+{
+    <div class="alert alert-info mt-3">No se encontraron datos. Verifica la ruta del archivo.</div>
+}
+
+@code {
+    private List<Dictionary<string, string>> tableData = new();
+    private List<string> headers = new();
+    private bool isLoading = false;
+    private string errorMessage;
+    private string csvFilePath = "pawd.csv"; // Ruta por defecto
+
+    private int currentColumnIndex = 0;
+
+    private IEnumerable<string> VisibleHeaders =>
+        headers.Skip(currentColumnIndex).Take(2);
+
+    private bool CanShowPrevious => currentColumnIndex > 0;
+    private bool CanShowNext => currentColumnIndex + 2 < headers.Count;
+
+    private List<string> firstRowValues = new();
+
+    private string inputPassword = "";
+    private string password = "";
+
+    private bool shouldDecrypt = false;
+
+    private void SetPassword()
+    {
+        password = inputPassword;
+    }
+
+    private void ShowPreviousColumns()
+    {
+        if (CanShowPrevious)
+            currentColumnIndex--;
+    }
+
+    private void ShowNextColumns()
+    {
+        if (CanShowNext)
+            currentColumnIndex++;
+    }
+
+    private async Task LoadCsvData()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            tableData.Clear();
+            headers.Clear();
+            firstRowValues.Clear();
+            currentColumnIndex = 0;
+            shouldDecrypt = false;
+
+            if (string.IsNullOrWhiteSpace(csvFilePath))
+            {
+                errorMessage = "Por favor, especifica una ruta de archivo";
+                return;
+            }
+
+            if (!File.Exists(csvFilePath))
+            {
+                errorMessage = $"Archivo no encontrado en: {csvFilePath}";
+                return;
+            }
+
+            using var reader = new StreamReader(csvFilePath);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+            await csv.ReadAsync();
+            csv.ReadHeader();
+            headers = csv.HeaderRecord.ToList();
+
+            bool isFirstRow = true;
+            while (await csv.ReadAsync())
+            {
+                if (isFirstRow)
+                {
+                    foreach (var header in headers)
+                    {
+                        firstRowValues.Add(csv.GetField(header)?.ToString() ?? string.Empty);
+                    }
+                    isFirstRow = false;
+
+                    // Determinar si se debe descifrar
+                    shouldDecrypt = firstRowValues.Count > 0 &&
+                        firstRowValues[0].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) &&
+                        !string.IsNullOrEmpty(password);
+
+                    // Descifrar la primera fila si corresponde (excepto la primera columna)
+                    if (shouldDecrypt)
+                    {
+                        for (int i = 1; i < firstRowValues.Count; i++)
+                        {
+                            try
+                            {
+                                firstRowValues[i] = Cifrado.descifrar(firstRowValues[i], password);
+                            }
+                            catch
+                            {
+                                // Si falla el descifrado, dejar el valor original
+                            }
+                        }
+                    }
+                    continue; // Saltar la primera fila
+                }
+
+                var record = new Dictionary<string, string>();
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    var header = headers[i];
+                    var value = csv.GetField(header)?.ToString() ?? string.Empty;
+                    // Descifrar si corresponde y no es la primera columna
+                    if (shouldDecrypt && i > 0)
+                    {
+                        try
+                        {
+                            value = Cifrado.descifrar(value, password);
+                        }
+                        catch
+                        {
+                            // Si falla el descifrado, dejar el valor original
+                        }
+                    }
+                    record[header] = value;
+                }
+                tableData.Add(record);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar el archivo: {ex.Message}";
+            Console.WriteLine(errorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ClearData()
+    {
+        tableData.Clear();
+        headers.Clear();
+        errorMessage = null;
+        currentColumnIndex = 0;
+    }
+}

@@ -1,0 +1,322 @@
+﻿@page "/BaseDatos"
+@inject Sello.Services.GlobalState GlobalState
+
+<h3>Visualizador de Datos</h3>
+
+@if (isLoading)
+{
+    <div class="alert alert-info" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <span>@statusMessage</span>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(statusMessage))
+{
+    <div class="@messageClass" role="alert">
+        @statusMessage
+    </div>
+}
+
+@if (decryptionError)
+{
+    <div class="alert alert-danger" role="alert">
+        Error de descifrado: La contraseña no es válida
+    </div>
+}
+
+@if (tableData.Any() && !decryptionError && !isLoading)
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <span class="text-muted">Haz clic en los botones para alternar visibilidad</span>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary btn-sm me-2" @onclick="ShowAllColumns">
+                <i class="bi bi-eye"></i> Mostrar Todo
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="HideAllColumns">
+                <i class="bi bi-eye-slash"></i> Ocultar Todo
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    @for (int i = 0; i < columnNames.Count; i++)
+                    {
+                        var columnIndex = i; // Capturar el índice en una variable local
+                                             <th class="@(IsColumnVisible(i) ? "column-visible" : "column-hidden")">
+                                                 <div class="d-flex justify-content-between align-items-center">
+                                                     <span>@columnNames[i]</span>
+                                                     <button class="btn btn-sm btn-toggle" @onclick="() => ToggleColumnVisibility(columnIndex)">
+                                                         <i class="bi @(IsColumnVisible(i) ? "bi-eye" : "bi-eye-slash")"></i>
+                                                     </button>
+                                                 </div>
+                                                 <span class="badge @(IsColumnVisible(i) ? "bg-success" : "bg-secondary") ms-1">
+                                                     @(IsColumnVisible(i) ? "Visible" : "Oculto")
+                                                 </span>
+                                             </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in tableData)
+                {
+                    var cells = row.Split(',');
+                    <tr>
+                        @for (int i = 0; i < cells.Length; i++)
+                        {
+                            <td>
+                                @if (i < cTypes.Count && cTypes[i] == "true")
+                                {
+                                    if (!IsColumnVisible(i))
+                                    {
+                                        <span class="text-muted">••••••••</span>
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            @Cifrado.descifrar(cells[i], GlobalState.Password)
+                                        }
+                                        catch
+                                        {
+                                            <span class="text-danger">❌ Error</span>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    @cells[i]
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<string> tableData = new();
+    private string statusMessage = "Cargando datos...";
+    private string messageClass = "alert alert-info";
+    private List<string> columnNames = new();
+    private List<string> cTypes = new();
+    private string filePath = string.Empty;
+    private bool decryptionError = false;
+    private bool isLoading = true;
+    private Dictionary<int, bool> columnVisibility = new Dictionary<int, bool>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            statusMessage = "Cargando datos...";
+
+            if (string.IsNullOrEmpty(GlobalState.Password))
+            {
+                statusMessage = "Contraseña no válida";
+                messageClass = "alert alert-warning";
+                isLoading = false;
+                return;
+            }
+
+            filePath = Path.Combine(FileSystem.AppDataDirectory, "pawd.csv");
+
+            if (!File.Exists(filePath))
+            {
+                statusMessage = $"No se encontró el archivo de datos en: {filePath}";
+                messageClass = "alert alert-warning";
+                isLoading = false;
+                return;
+            }
+
+            var lines = await File.ReadAllLinesAsync(filePath);
+
+            if (lines.Length > 0)
+                columnNames = lines[0].Split(',').ToList();
+
+            if (lines.Length > 1)
+                cTypes = lines[1].Split(',').ToList();
+
+            if (lines.Length <= 2)
+            {
+                statusMessage = "El archivo no contiene datos válidos";
+                messageClass = "alert alert-warning";
+                isLoading = false;
+                return;
+            }
+
+            tableData = lines.Skip(2).Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
+
+            if (!tableData.Any())
+            {
+                statusMessage = "No hay datos para mostrar";
+                messageClass = "alert alert-info";
+                isLoading = false;
+                return;
+            }
+
+            // Inicializar la visibilidad de columnas
+            InitializeColumnVisibility();
+
+            await ValidatePassword();
+
+            statusMessage = "Datos cargados correctamente";
+            messageClass = "alert alert-success";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error al cargar datos: {ex.Message}";
+            messageClass = "alert alert-danger";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void InitializeColumnVisibility()
+    {
+        for (int i = 0; i < columnNames.Count; i++)
+        {
+            // Si la columna es de tipo "true", inicialmente oculta (censurada)
+            // Si no es de tipo "true", inicialmente visible
+            if (i < cTypes.Count && cTypes[i] == "true")
+            {
+                columnVisibility[i] = false; // false = oculto (censurado)
+            }
+            else
+            {
+                columnVisibility[i] = true; // true = visible
+            }
+        }
+    }
+
+    private bool IsColumnVisible(int columnIndex)
+    {
+        return columnVisibility.ContainsKey(columnIndex) && columnVisibility[columnIndex];
+    }
+
+    private void ToggleColumnVisibility(int columnIndex)
+    {
+        if (columnVisibility.ContainsKey(columnIndex))
+        {
+            columnVisibility[columnIndex] = !columnVisibility[columnIndex];
+        }
+        else
+        {
+            columnVisibility[columnIndex] = true;
+        }
+
+        Console.WriteLine($"Columna {columnIndex} cambiada a: {columnVisibility[columnIndex]}");
+        StateHasChanged();
+    }
+
+    private void ShowAllColumns()
+    {
+        for (int i = 0; i < columnNames.Count; i++)
+        {
+            columnVisibility[i] = true;
+        }
+        Console.WriteLine("Todas las columnas mostradas");
+        StateHasChanged();
+    }
+
+    private void HideAllColumns()
+    {
+        for (int i = 0; i < columnNames.Count; i++)
+        {
+            // Solo ocultar columnas que son cifradas (tipo "true")
+            if (i < cTypes.Count && cTypes[i] == "true")
+            {
+                columnVisibility[i] = false;
+            }
+            else
+            {
+                columnVisibility[i] = true; // Mantener visibles las no cifradas
+            }
+        }
+        Console.WriteLine("Columnas cifradas ocultadas");
+        StateHasChanged();
+    }
+
+    private async Task ValidatePassword()
+    {
+        if (tableData.Any() && cTypes.Contains("true"))
+        {
+            try
+            {
+                var firstEncryptedRow = tableData.First();
+                var firstEncryptedCells = firstEncryptedRow.Split(',');
+
+                for (int i = 0; i < firstEncryptedCells.Length; i++)
+                {
+                    if (i < cTypes.Count && cTypes[i] == "true" && !string.IsNullOrEmpty(firstEncryptedCells[i]))
+                    {
+                        _ = Cifrado.descifrar(firstEncryptedCells[i], GlobalState.Password);
+                        break;
+                    }
+                }
+
+                decryptionError = false;
+            }
+            catch
+            {
+                decryptionError = true;
+                messageClass = "alert alert-danger";
+                statusMessage = "La contraseña no es válida para descifrar los datos";
+            }
+        }
+        else
+        {
+            decryptionError = false;
+        }
+    }
+}
+
+<style>
+    .column-visible {
+        background-color: #d1e7dd !important;
+    }
+
+    .column-hidden {
+        background-color: #6c757d !important;
+        color: white !important;
+    }
+
+    th {
+        transition: all 0.3s ease;
+    }
+
+    .btn-toggle {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        border-radius: 4px;
+        padding: 0;
+    }
+
+        .btn-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .btn-toggle:active {
+            transform: scale(0.95);
+        }
+</style>

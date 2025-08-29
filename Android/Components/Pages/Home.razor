@@ -1,0 +1,20 @@
+﻿@page "/"
+@inject Sello.Services.GlobalState GlobalState
+
+<h1>Bienvenido a Sello Mobile.</h1>
+
+<div class="input-group" style="max-width: 350px;">
+    <input 
+        class="form-control"
+        placeholder="Contraseña global"
+        @bind="GlobalState.Password"
+        type="password" />
+
+</div>
+
+@if (!string.IsNullOrEmpty(GlobalState.Password))
+{
+    <div class="alert alert-info mt-2">
+        Contraseña global ya asignada
+    </div>
+}
