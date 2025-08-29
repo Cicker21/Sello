@@ -1,4 +1,3 @@
-<br/>
 
 <div align="center">
 
@@ -8,57 +7,42 @@
 
 <p align="center">
 
-&nbsp; Gestor de contraseñas basado es AES (Advanced Encryption Standard)
+Gestor de contraseñas basado es AES (Advanced Encryption Standard)
+
+
+
+Con soporte para Google Drive
 
 <br>
 
-&nbsp;Con soporte para Google Drive
-
-<br/>
-
 <a href="https://github.com/Cicker21/Sello/releases"><strong>Descargar versión mas reciente »</strong></a>
 
-<br/>
+<br>
 
-<br/>
-
-&nbsp; 
-
-<span>
-
-&nbsp;   <a href="https://github.com/Cicker21/Sello/issues/new?assignees=Cicker21\&labels=bug\&projects=\&template=bug\_report.md">Report Bug</a>
-
-&nbsp;   <span> | </span>
-
-&nbsp;   <a padding="30" href="https://github.com/Cicker21/Sello/issues/new?assignees=Cicker21\&labels=enhancement\&projects=\&template=feature\_request.md">Request Feature</a>
-
-&nbsp;   <span> | </span>
-
-&nbsp;   <a href="https://github.com/Cicker21/Sello/issues/new?assignees=Cicker21\&labels=help+wanted%252C+question\&projects=\&template=question.md">Make a Question</a>
-
+<span><a href="https://github.com/Cicker21/Sello/issues/new?assignees=Cicker21\&labels=bug\&projects=\&template=bug\_report.md">Report Bug</a>
+<span> | </span>
+<a padding="30" href="https://github.com/Cicker21/Sello/issues/new?assignees=Cicker21\&labels=enhancement\&projects=\&template=feature\_request.md">Request Feature</a>
+<span> | </span>
+<a href="https://github.com/Cicker21/Sello/issues/new?assignees=Cicker21\&labels=help+wanted%252C+question\&projects=\&template=question.md">Make a Question</a>
 </span>
-
-
 
 </p>
 
 </div>
 
-
-
-!\[Issues](https://img.shields.io/github/issues/Cicker21/Sello) !\[License](https://img.shields.io/github/license/Cicker21/Sello)
+![Issues](https://img.shields.io/github/issues/Cicker21/Sello) ![License](https://img.shields.io/github/license/Cicker21/Sello)
 
 
 
 
 
-\## Languages 🇬🇧
+## Languages 🇬🇧
 
 If you want a translation of the app into English or another language, please create a request in the issues section.
 
 
 
-\## Descripción
+## Descripción
 
 Sello es una aplicación programada en C# con el fin de gestionar contraseñas y otros de manera eficiente y segura.
 
@@ -70,11 +54,11 @@ Se basa en encriptación AES128 (Advanced Encryption Standard) para cifrar los d
 
 También cuenta con soporte para Google Drive para guardar tus datos sin miedo a perderlos.
 
-<br><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Google\_Drive\_logo.png/1200px-Google\_Drive\_logo.png" width="40">
+<br><img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_Drive_logo.png" width="70">
 
 
 
-\## Primeros Pasos
+## Primeros Pasos
 
 
 
@@ -94,7 +78,7 @@ En caso de tener una duda crea un pregunta (Question) en la sección <a href="ht
 
 
 
-\## Instalación
+## Instalación
 
 
 
@@ -102,7 +86,7 @@ El programa consta de un unico ejecutable ```Sello.exe``` que es portable y su a
 
 
 
-\## Contact 🇬🇧 / 🇪🇸
+## Contact 🇬🇧 / 🇪🇸
 
 
 
@@ -110,9 +94,9 @@ If you have any questions or suggestions, feel free to reach out to me:
 
 
 
-\- <a href="https://github.com/Cicker21/Sello/issues">Issues</a>
+- <a href="https://github.com/Cicker21/Sello/issues">Issues</a>
 
-\- <a href="https://discord.com/">Discord: Cicker</a>
+- <a href="https://discord.com/">Discord: Cicker</a>
 
 
 
